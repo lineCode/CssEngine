@@ -56,28 +56,28 @@ public:
 	~SimpleSelector();
 
 public:
-	void setRelation(LUint relation);
-	Relation getRelation() const;
+	void setRelation(LInt8 relation);
+	LInt8 getRelation() const;
 
 	void setSelectorText(const StringA& selectorText);
 	const StringA& getSelectorText() const;
 
-	void setPseudoType(LUint pseudoType);
-	PseudoType getPseudoType() const;
+	void setPseudoType(LInt8 pseudoType);
+	LInt8 getPseudoType() const;
 
-	void setMatch(LUint match);
-	Match getMatch() const;
+	void setMatch(LInt8 match);
+	LInt8 getMatch() const;
 
 private:
 	StringA m_selectorText;
-	LUint m_relation;
-	LUint m_pseudoType;
-	LUint m_match;
+	LInt8 m_relation;
+	LInt8 m_pseudoType;
+	LInt8 m_match;
 };
 
 typedef StringA                                PropertyName;
 typedef StringA                                PropertyValue;
-typedef KVector<SimpleSelector>                Selector;
+typedef KVector<SimpleSelector*>               Selector;
 typedef KVector<Selector*>                     SelectorGroup;
 
 class CssPropertyValue

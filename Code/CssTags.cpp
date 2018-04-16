@@ -66,6 +66,8 @@ CssTags* CssTags::getInstance()
         s_cssTags->defineInitialSymbol(_CS("text-align"), TEXT_ALIGN);
         s_cssTags->defineInitialSymbol(_CS("width"), WIDTH);
         s_cssTags->defineInitialSymbol(_CS("height"), HEIGHT);
+        s_cssTags->defineInitialSymbol(_CS("scale"), SCALE);
+        s_cssTags->defineInitialSymbol(_CS("z-index"), Z_INDEX);
 	}
 	
 	return s_cssTags;

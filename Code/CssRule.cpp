@@ -73,14 +73,14 @@ void SimpleSelector::setSelectorText(const StringA& selectorText)
 	}
 }
 
-void SimpleSelector::setMatch(LUint match)
+void SimpleSelector::setMatch(LInt8 match)
 {
 	m_match = match;
 }
 
-SimpleSelector::Match SimpleSelector::getMatch() const
+LInt8 SimpleSelector::getMatch() const
 {
-	return static_cast<SimpleSelector::Match>(m_match);
+	return m_match;
 }
 
 const StringA& SimpleSelector::getSelectorText() const
@@ -88,24 +88,24 @@ const StringA& SimpleSelector::getSelectorText() const
 	return m_selectorText;
 }
 
-void SimpleSelector::setRelation(LUint relation)
+void SimpleSelector::setRelation(LInt8 relation)
 {
 	m_relation = relation;
 }
 
-SimpleSelector::Relation SimpleSelector::getRelation() const
+LInt8 SimpleSelector::getRelation() const
 {
-	return static_cast<SimpleSelector::Relation>(m_relation);
+	return m_relation;
 }
 
-void SimpleSelector::setPseudoType(LUint pseudoType)
+void SimpleSelector::setPseudoType(LInt8 pseudoType)
 {
     m_pseudoType = pseudoType;
 }
 
-SimpleSelector::PseudoType SimpleSelector::getPseudoType() const
+LInt8 SimpleSelector::getPseudoType() const
 {
-	return static_cast<SimpleSelector::PseudoType>(m_pseudoType);
+	return m_pseudoType;
 }
 
 CssPropertyValue::CssPropertyValue()
@@ -160,7 +160,7 @@ void CssPropertyValue::computeSpecificity(const Selector* selector, PropertySpec
 	LInt num = selector->size();
 	for (LInt i = 0; i < num; i++)
 	{
-		switch (selector->elementAt(i).getMatch())
+		switch (selector->elementAt(i)->getMatch())
 		{
 		case SimpleSelector::Id:
 			{
@@ -247,8 +247,21 @@ CssRule::~CssRule()
 	KLOG("CssRule::~CssRule()");
 	if (m_selectorGroup)
 	{
-	    delete m_selectorGroup;
-	    m_selectorGroup = NULL;
+		LInt groupIdx = m_selectorGroup->size();
+		while (groupIdx)
+		{
+			Selector *sel = m_selectorGroup->elementAt(--groupIdx);
+			LInt selIdx = sel->size();
+			while (selIdx)
+			{
+				SimpleSelector *simpleSelector = sel->elementAt(--selIdx);
+				delete simpleSelector;
+			}
+
+			delete sel;
+		}
+
+		delete m_selectorGroup;
 	}
 }
 
@@ -338,7 +351,7 @@ void CssRule::copyPropertiesFrom(const CssRule* rule)
 // last style will be send to htmlitem object
 void CssRule::createStyle(Style& style, LFont::FontStyle currentFont)
 {
-	style.m_transparent = LTrue;
+	style.transparent = LTrue;
 	
 	AttributeMap::Iterator iter = m_properties.begin();
 	AttributeMap::Iterator iterEnd = m_properties.end();
@@ -361,195 +374,202 @@ const AttributeMap* CssRule::getPropertiesPtr() const
 void CssRule::setStyleProperties(Style& style, LInt property,
 		const CssPropertyValue& value)
 {
-	switch(property)
+	switch (property)
 	{
 	case CssTags::BACKGROUND_COLOR:
 		{
-		    style.m_bgColor = value.intVal;
-		    style.m_transparent = LFalse;
+		    style.bgColor = value.intVal;
+		    style.transparent = LFalse;
 		    KFORMATLOG("style.m_bgColor=%x", value.intVal);
 		}
 		break;
 	case CssTags::BACKGROUND_IMAGE:
 		{
-		    style.m_bgImageUrl = value.strVal;
-		    style.m_transparent = LFalse;
+		    style.bgImageUrl = value.strVal;
+		    style.transparent = LFalse;
 		}
 		break;
 	case CssTags::COLOR:
 		{
-		    style.m_color = value.intVal;
+			KFORMATLOG("style Color=%x", value.intVal);
+		    style.color = value.intVal;
 		}
 		break;
 	case CssTags::FONT_STYLE:
 		{
-		    style.m_font.setFontStyle((LFont::FontStyle)value.intVal);
+		    style.font.setFontStyle((LFont::FontStyle)value.intVal);
 		}
 		break;
 	case CssTags::FONT_WEIGHT:
 		{
-		    style.m_font.setFontStyle((LFont::FontStyle)value.intVal);
+		    style.font.setFontStyle((LFont::FontStyle)value.intVal);
 		}
 		break;
 	case CssTags::LEFT:
 		{
-		    style.m_left = value.intVal;
+			KFORMATLOG("ImageItem::layout style.m_left=%d", value.intVal);
+		    style.left = value.intVal;
 		}
 		break;
 	case CssTags::TOP:
 		{
-		    style.m_top = value.intVal;
+		    style.top = value.intVal;
 		}
 		break;
 	case CssTags::POSITION:
 		{
-		    style.m_positionType = value.intVal;
+		    style.positionType = value.intVal;
 		}
 		break;
 	case CssTags::FONT_SIZE:
 		{
-		    style.m_font.setFontSize(value.intVal);
+		    style.font.setFontSize(value.intVal);
 		}
 		break;
 	case CssTags::BORDER_STYLE:
 		{
 		    if(value.intVal == LGraphicsContext::SolidPen)
 		    {
-				style.m_border.m_topWidth = 1;
-				style.m_border.m_leftWidth = 1;
-				style.m_border.m_bottomWidth = 1;
-				style.m_border.m_rightWidth = 1;
+				style.border.topWidth = 1;
+				style.border.leftWidth = 1;
+				style.border.bottomWidth = 1;
+				style.border.rightWidth = 1;
 		    }
 		}
 		break;
 	case CssTags::TEXT_ALIGN:
 		{
-		    style.m_textAlignement = value.intVal;
+		    style.textAlignement = value.intVal;
 		}
 		break;
 	case CssTags::MARGIN_LEFT:
 		{
-		    style.m_leftMargin = value.intVal;
+		    style.leftMargin = value.intVal;
 		}
 		break;
 	case CssTags::MARGIN_TOP:
 		{
-		    style.m_topMargin = value.intVal;
+		    style.topMargin = value.intVal;
 		}
 		break;
 	case CssTags::MARGIN_RIGHT:
 		{
-		    style.m_rightMargin = value.intVal;
+		    style.rightMargin = value.intVal;
 		}
 		break;
 	case CssTags::MARGIB_BOTTOM:
 		{
-		    style.m_bottomMargin = value.intVal;
+		    style.bottomMargin = value.intVal;
 		}
 		break;
 	case CssTags::PADDING_LEFT:
 		{
-		    style.m_leftPadding = value.intVal;
+		    style.leftPadding = value.intVal;
 		}
 		break;
 	case CssTags::PADDING_TOP:
 		{
-		    style.m_topPadding = value.intVal;
+		    style.topPadding = value.intVal;
 		}
 		break;
 	case CssTags::PADDING_RIGHT:
 		{
-		    style.m_rightPadding = value.intVal;
+		    style.rightPadding = value.intVal;
 		}
 		break;
 	case CssTags::PADDING_BOTTOM:
 		{
-		    style.m_bottomPadding = value.intVal;
+		    style.bottomPadding = value.intVal;
 		}
 		break;
 	case CssTags::BORDER_TOP_STYLE:
 		{
-		    style.m_border.m_topStyle = value.intVal;
+		    style.border.topStyle = value.intVal;
 		    if(value.intVal == LGraphicsContext::SolidPen)
 		    {
-		        style.m_border.m_topWidth = 1;
+		        style.border.topWidth = 1;
 		    }
 		}
 		break;
 	case CssTags::BORDER_BOTTOM_STYLE:
 		{
-		    style.m_border.m_bottomStyle = value.intVal;
+		    style.border.bottomStyle = value.intVal;
 		    if(value.intVal == LGraphicsContext::SolidPen)
 		    {
-		        style.m_border.m_bottomWidth = 1;
+		        style.border.bottomWidth = 1;
 		    }
 		}
 		break;
 	case CssTags::BORDER_LEFT_STYLE:
 		{
-		    style.m_border.m_leftStyle = value.intVal;
+		    style.border.leftStyle = value.intVal;
 		    if(value.intVal == LGraphicsContext::SolidPen)
 		    {
-		        style.m_border.m_leftWidth = 1;
+		        style.border.leftWidth = 1;
 		    }
 		}
 		break;	
 	case CssTags::BORDER_RIGHT_STYLE:
 		{
-		    style.m_border.m_rightStyle = value.intVal;
+		    style.border.rightStyle = value.intVal;
 		    if(value.intVal == LGraphicsContext::SolidPen)
 		    {
-		        style.m_border.m_rightWidth = 1;
+		        style.border.rightWidth = 1;
 		    }
 		}
 		break;	
 	case CssTags::BORDER_COLOR:
 		{
-		    style.m_border.m_leftColor = value.intVal;
-		    style.m_border.m_topColor = value.intVal;
-		    style.m_border.m_bottomColor = value.intVal;
-		    style.m_border.m_rightColor = value.intVal;
+		    style.border.leftColor = value.intVal;
+		    style.border.topColor = value.intVal;
+		    style.border.bottomColor = value.intVal;
+		    style.border.rightColor = value.intVal;
 		}
 		break;
 	case CssTags::BORDER_LEFT_COLOR:
 		{
-		    style.m_border.m_leftColor = value.intVal;
+		    style.border.leftColor = value.intVal;
 		}
 		break;
 	case CssTags::BORDER_TOP_COLOR:
 		{
-		    style.m_border.m_topColor = value.intVal;
+		    style.border.topColor = value.intVal;
 		}
 		break;	
 	case CssTags::BORDER_BOTTOM_COLOR:
 		{
-		    style.m_border.m_bottomColor = value.intVal;
+		    style.border.bottomColor = value.intVal;
 		}
 		break;
 	case CssTags::BORDER_RIGHT_COLOR:
 		{
-		    style.m_border.m_rightColor = value.intVal;
+		    style.border.rightColor = value.intVal;
 		}
 		break;
 	case CssTags::DISPLAY:
 		{
-		    style.m_displayType = value.intVal;
-		}
-		break;
-	case CssTags::FLOAT:
-		{
-		    style.m_floatType = value.intVal;
+		    style.displayType = value.intVal;
 		}
 		break;
 	case CssTags::WIDTH:
 		{
-		    style.m_width = value.intVal;
+		    style.width = value.intVal;
 		}
 		break;
 	case CssTags::HEIGHT:
 		{
-		    style.m_height = value.intVal;
+		    style.height = value.intVal;
 		}
+		break;
+	case CssTags::SCALE:
+	    {
+		    style.scale = ((float)value.intVal)/100;
+	    }
+	    break;
+	case CssTags::Z_INDEX:
+	    {
+            style.zindex = value.intVal;
+	    }
 		break;
 	default:
 		{

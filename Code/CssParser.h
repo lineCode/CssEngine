@@ -33,7 +33,7 @@ private:
 	
 	void addSelectorGroup(SelectorGroup* selectors, PropertyMap* declarations);
 	void addDeclaration(PropertyMap* properties, PropertyName& prop, PropertyValue& value);
-	
+
 	LInt getCssColor(const StringA& colorValue);
 	void addProperty(CssRule* rule, LUint property, PropertyValue& value);
 

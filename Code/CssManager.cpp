@@ -13,6 +13,7 @@ namespace util
 {
 
 CssManager::CssManager()
+    : m_doctree(new Doctree(20))
 {
 }
 
@@ -28,12 +29,13 @@ CssManager::~CssManager()
 	
 	m_ruleList.clear();
 	
-	LInt size = m_doctree.size();
-	for (LInt i = 0; i < size; i++)
+	LInt idx = m_doctree->size();
+	while (idx)
 	{
-	    DoctreeNode* node = m_doctree.elementAt(i);
-	    delete node;
+	    delete m_doctree->elementAt(--idx);
 	}
+
+	delete m_doctree;
 }
 
 void CssManager::addCssRule(CssRule* rule)
@@ -73,32 +75,54 @@ CssRule* CssManager::getCssRule()
 	return cssStyle;
 }
 
+LBool CssManager::matchPrepare(Selector* sel)
+{
+	if (!sel->size())
+	{
+		return LFalse;
+	}
+
+	StringA elem = sel->elementAt(sel->size() - 1)->getSelectorText();
+	DoctreeNode* docElem = m_doctree->elementAt(m_doctree->size() - 1);
+	if ((elem.CompareNoCase(docElem->m_tagId) && !elem.CompareNoCase(_CS("#")))
+		|| elem.CompareNoCase(docElem->m_tagName)
+		|| (docElem->m_classArray.contains(elem) && !elem.CompareNoCase(_CS(".")))
+			)
+	{
+		return LTrue;
+	}
+
+	return LFalse;
+}
+
 CssRule* CssManager::matchRule(CssRule* rule)
 {
 	CssRule* newCssStyle = NULL;
 	if (rule != NULL)
 	{
 	    SelectorGroup* selectorGroup = rule->getSelectorGroup();
-
 		Selector* targetSelector = NULL;
 		CssPropertyValue::PropertySpecificity specificity;
+		LInt selId = selectorGroup->size();
 
-		LInt selectorIndex = 0;
-		Selector* sel = selectorGroup->elementAt(selectorIndex);
-		while (sel)
+		while (selId)
 		{
-			LInt simpleSelectorNum = sel->size();
-			LInt doctreeNodeNum = m_doctree.size();
-	    
+			Selector* sel = selectorGroup->elementAt(--selId);
+			if (!matchPrepare(sel))
+			{
+				continue;
+			}
+
 			LBool find = LFalse;
-			LInt docIndex = doctreeNodeNum-1;
-			for (LInt i = simpleSelectorNum-1; i >= 0; i--)
-	   		{
-				StringA elem = sel->elementAt(i).getSelectorText();
+			LInt simIdx = sel->size();
+			LInt docIndex = m_doctree->size() - 1;
+			while (simIdx)
+			{
+				StringA elem = sel->elementAt(--simIdx)->getSelectorText();
 				find = LFalse;	        
-        		for (LInt j = docIndex; j >= 0; j--)
+        		for (LInt idx = docIndex; idx >= 0; idx--)
 				{            		
-        			DoctreeNode* docElem = m_doctree.elementAt(j);
+        			DoctreeNode* docElem = m_doctree->elementAt(idx);
         			if ((elem.CompareNoCase(docElem->m_tagId) && !elem.CompareNoCase(_CS("#")))
         					|| elem.CompareNoCase(docElem->m_tagName)
         					|| (docElem->m_classArray.contains(elem) && !elem.CompareNoCase(_CS(".")))
@@ -106,41 +130,20 @@ CssRule* CssManager::matchRule(CssRule* rule)
         			{
         				// find one
         				find = LTrue;
-        				docIndex = --j;
+        				docIndex = --idx;
         				break;
-        			}
-        			else 
-					{     		    
-						continue;
         			}
         		}
         	
-        		if (find) 
+        		if (!find)
 				{
-        			// 如果找到了继续对selector的下一个元素进行查找
-        			continue; 
-        		}
-        		else 
-				{
-        			// 如果找不到则直接调出循环，find代表查找失败，后续程序根据这个来判断
-        			break;    
+        			// 如果找到了继续对selector的下一个元素进行查找,
+					// 如果找不到则直接调出循环,find代表查找失败
+					break;
         		}
 			}
 	    
-			if (!find) 
-			{
-				++selectorIndex;
-				if (selectorIndex >= selectorGroup->size())
-				{
-					newCssStyle = NULL;
-					break;
-				}
-				else
-				{
-					sel = selectorGroup->elementAt(selectorIndex);
-				}
-			}
-			else
+			if (find)
 			{
 				// have found!!!
 				targetSelector = sel;
@@ -153,20 +156,10 @@ CssRule* CssManager::matchRule(CssRule* rule)
 					specificity = tmpSpecificity;
 				}
 
-				++selectorIndex;
-				if (selectorIndex >= selectorGroup->size()) // 查找完毕
-				{
-					break;
-				}
-				else
-				{
-					sel = selectorGroup->elementAt(selectorIndex); // 继续找优先级更高的可以匹配的selector
-				}
+				// 继续查找优先级更高的specificity
 			}
 
 		}
-
-		KLOG("CssManager::matchRule 1");
 
 		if (specificity.m_id != 0 || specificity.m_tag != 0 || specificity.m_classOrPseudo != 0)
 		{
@@ -179,8 +172,6 @@ CssRule* CssManager::matchRule(CssRule* rule)
 				(*iter)->getValue().setSpecificity(specificity);
 	        }
 		}
-
-		KLOG("CssManager::matchRule 2");
        
 	}
 	
@@ -189,19 +180,18 @@ CssRule* CssManager::matchRule(CssRule* rule)
 
 void CssManager::pushDoctreeNode(DoctreeNode* node)
 {
-	m_doctree.push(node);
+	m_doctree->push(node);
 }
 
 void CssManager::pushDoctreeNode(const StringA& tagId, const ClassArray& tagClass, const StringA& tagName)
 {
 	DoctreeNode* node = new DoctreeNode(tagId, tagClass, tagName);
-	m_doctree.push(node);
+	m_doctree->push(node);
 }
 
 void CssManager::popDoctreeNode()
 {
-	DoctreeNode* node = m_doctree.pop();
-	delete node;
+	delete m_doctree->pop();
 }
 
 // inherited parent style
@@ -216,10 +206,12 @@ CssRule* CssManager::createNewCssRule(const CssRule* parentRule, CssRule* childR
 		AttributeMap::Iterator iterEnd = properties->end();
 		for (; iter != iterEnd; ++iter)
 		{
-			if (((LInt)(*iter)->getKey()) > CssTags::STYLE_NULL) //  iter.getKey() > 0 can be inherited
+			if ((*iter)->getKey() > CssTags::STYLE_NULL) //  iter.getKey() > 0 can be inherited
 			{
-			    KLOG("inherited1");
-			    KDESLOG((LInt)(*iter)->getKey());
+				LInt key = (LInt)(*iter)->getKey();
+				LInt styleNull = CssTags::STYLE_NULL;
+				KFORMATLOG("CssManager::createNewCssRule inherited key=%d styleNull=%d", key, styleNull);
+
 				if ((*iter)->getValue().strVal.GetLength() > 0)
 				{
 				    newCssRule->addProperty((*iter)->getKey(), (*iter)->getValue().strVal);
@@ -239,7 +231,6 @@ CssRule* CssManager::createNewCssRule(const CssRule* parentRule, CssRule* childR
 		AttributeMap::Iterator iterEnd = properties->end();
 		for (; iter != iterEnd; ++iter)
 		{
-			KLOG("inherited1");
 			KDESLOG((LInt)(*iter)->getKey());
 		    if ((*iter)->getValue().strVal.GetLength() > 0)
 			{

@@ -28,6 +28,7 @@ public:
 	void addCssRule(CssRule* rule);
 	CssRule* getCssRule();
 	CssRule* matchRule(CssRule* rule);
+	LBool matchPrepare(Selector* selector);
 	CssRule* createNewCssRule(const CssRule* parentRule, CssRule* childRule);
 	
 	void pushDoctreeNode(DoctreeNode* node);
@@ -36,7 +37,7 @@ public:
 	
 protected:
 	RuleList m_ruleList;
-	Doctree  m_doctree;
+	Doctree* m_doctree;
 };
 
 }

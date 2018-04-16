@@ -1,5 +1,5 @@
 /*
- * CSSParser.h
+ * CssTags.h
  *
  *  Created on: 2011-6-23
  *      Author: yanbo
@@ -23,11 +23,11 @@ class CssTags
 {
 public:
 	//properties
-	//properties that are inherited has value > 0.
-	//properties that is not inherited has value < 0
+	//properties that are inherited has value > STYLE_NULL.
+	//properties that is not inherited has value < STYLE_NULL.
 	enum CssType
 	{
-	    WIDTH = -37,
+	    WIDTH = 1,
 	    HEIGHT,
 	    DISPLAY,
 	    FLOAT,		
@@ -64,12 +64,14 @@ public:
 		TOP,
 		BACKGROUND,
 		BACKGROUND_COLOR,
-		STYLE_NULL,               // 0
-		COLOR,                    // 1
+		Z_INDEX,
+		STYLE_NULL,
+		COLOR,
 		FONT_SIZE,
 		FONT_STYLE,
 		FONT_WEIGHT,
 		TEXT_ALIGN,
+		SCALE,
 	};
 	
 public:

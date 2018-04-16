@@ -38,9 +38,9 @@ void CssParser::parseCss(InputStream& is)
 	{
 	    m_cssManager = new CssManager();
 	}
-	
-	SelectorGroup* selectorGroup = new SelectorGroup();
-	Selector* selector = new Selector();
+
+	SelectorGroup* selectorGroup = new SelectorGroup(0, 20);
+	Selector* selector = new Selector(0, 20);
 	
 	StringA selectText;
 	
@@ -76,8 +76,8 @@ void CssParser::parseCss(InputStream& is)
 	            	    PropertyMap* declarations = parseDeclarations(is);
 	            	    if (selectText.GetLength() > 0)
 						{
-							SimpleSelector realSelecor;
-							realSelecor.setSelectorText(selectText);
+							SimpleSelector* realSelecor = new SimpleSelector();
+							realSelecor->setSelectorText(selectText);
 	            	        selector->addElement(realSelecor);
 	            	    }
 	            	    selectorGroup->addElement(selector);
@@ -97,8 +97,8 @@ void CssParser::parseCss(InputStream& is)
 					break;
 	            case ',': 
 					{
-						SimpleSelector realSelecor;
-						realSelecor.setSelectorText(selectText);
+						SimpleSelector* realSelecor = new SimpleSelector();
+						realSelecor->setSelectorText(selectText);
 	            	    selector->addElement(realSelecor);
 	            	    selectorGroup->addElement(selector);
 	            	    selectText = (const LUint8*)NULL;
@@ -108,9 +108,9 @@ void CssParser::parseCss(InputStream& is)
 	            case ' ': 
 				    {
 	            	    if (selectText.GetLength() > 0)
-	            	    { 
-							SimpleSelector realSelecor;
-						    realSelecor.setSelectorText(selectText);
+	            	    {
+							SimpleSelector* realSelecor = new SimpleSelector();
+							realSelecor->setSelectorText(selectText);
 	            	        selector->addElement(realSelecor);
 	            	        selectText = (const LUint8*)NULL;
 	            	    }
@@ -283,16 +283,19 @@ LInt CssParser::getCssColor(const StringA& colorValue)
 	if (colorValue.GetLength() == 4) //Shorthand Hexadecimal Colors e.g #fff
 	{
 		KFORMATLOG("getCssColor = %s", (const char*)colorValue.GetBuffer());
-	    StringA tmp;
-	    tmp += colorValue.CharAt(0);
-	    tmp += colorValue.CharAt(1);
-	    tmp += colorValue.CharAt(1);
-	    tmp += colorValue.CharAt(2);
-	    tmp += colorValue.CharAt(2);
-	    tmp += colorValue.CharAt(3);
-	    tmp += colorValue.CharAt(3);
+
+	    LUint8* colorBuffer = new LUint8[7];
+	    colorBuffer[0] = colorValue.CharAt(0);
+	    colorBuffer[1] = colorValue.CharAt(1);
+	    colorBuffer[2] = colorValue.CharAt(1);
+	    colorBuffer[3] = colorValue.CharAt(2);
+	    colorBuffer[4] = colorValue.CharAt(2);
+	    colorBuffer[5] = colorValue.CharAt(3);
+	    colorBuffer[6] = colorValue.CharAt(3);
 	    
-	    return LColor::parseRgbString(tmp);
+	    StringA colorStr(colorBuffer, LTrue, 7);
+
+	    return LColor::parseRgbString(colorStr);
 	}
 	else
 	{
@@ -421,12 +424,7 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	        StringA oneValue = values->elementAt(i);
     	        if (oneValue.StartWith(_CS("#")))
     	        {
-    	            LInt color = getCssColor(oneValue);
-    	            //KFORMATLOG("color=%x", color);
-    	            if (color >= 0)
-    	            {
-    	                rule->addProperty(CssTags::BACKGROUND_COLOR, color);
-    	            }
+					rule->addProperty(CssTags::BACKGROUND_COLOR, getCssColor(oneValue));
     	        }
     	        
 	            if (oneValue.ToLower().StartWith(_CS("url")))
@@ -482,15 +480,9 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	    {
     	        color = COLOR_PINK;
     	    }
-    	     
-    	    if (color >= 0)
-    	    {
-    	        KLOG("BBB");
-    	        //KDESLOG(cssTag);
-    	        //KDESLOG(color);
-				KFORMATLOG("color tag = %d and color = %d", cssTag, color);
-    	        rule->addProperty(cssTag, color);
-    	    }
+
+			KFORMATLOG("color tag = %d and color = %x", cssTag, color);
+			rule->addProperty(cssTag, color);
     	}
     	break;
     case CssTags::FONT_SIZE:
@@ -539,11 +531,7 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	        StringA oneValue = values->elementAt(i);
     	        if (oneValue.StartWith(_CS("#")))
     	        {
-    	            LInt color = getCssColor(oneValue);
-    	            if (color >= 0)
-    	            {
-    	                rule->addProperty(CssTags::BORDER_BOTTOM_COLOR, color);
-    	            }
+					rule->addProperty(CssTags::BORDER_BOTTOM_COLOR, getCssColor(oneValue));
     	        }
     	        else if (oneValue.StartWithNoCase(_CS("solid")))
     	        {
@@ -553,7 +541,6 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	        {
 					LInt intValue = StringUtils::stringToInt(value.Mid(0, value.GetLength()-2));
 					rule->addProperty(CssTags::BORDER_BOTTOM_WIDTH, intValue);
-    	            //rule->addProperty(CssTags::BORDER_BOTTOM_WIDTH, LGraphicsContext::SolidPen);
     	        }
     	    }
     	    
@@ -570,11 +557,7 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	        StringA oneValue = values->elementAt(i);
     	        if (oneValue.StartWith(_CS("#")))
     	        {
-    	            LInt color = getCssColor(oneValue);
-    	            if (color >= 0)
-    	            {
-    	                rule->addProperty(CssTags::BORDER_TOP_COLOR, color);
-    	            }
+					rule->addProperty(CssTags::BORDER_TOP_COLOR, getCssColor(oneValue));
     	        }
     	        else if (oneValue.StartWithNoCase(_CS("solid")))
     	        {
@@ -593,13 +576,10 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	    for (LInt i = 0; i < size; i++)
     	    {
     	        StringA oneValue = values->elementAt(i);
-    	        if (oneValue.StartWith(_CS("#")))
+
+    	    	if (oneValue.StartWith(_CS("#")))
     	        {
-    	            LInt color = getCssColor(oneValue);
-    	            if (color >= 0)
-    	            {
-    	                rule->addProperty(CssTags::BORDER_COLOR, color);
-    	            }
+					rule->addProperty(CssTags::BORDER_COLOR, getCssColor(oneValue));
     	        }
     	        else if (oneValue.StartWithNoCase(_CS("solid")))
     	        {
@@ -609,26 +589,6 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	    
     	    delete values;
     	    values = NULL;
-    	}
-    	break;
-    case CssTags::FLOAT:
-    	{
-    	    if (value.CompareNoCase(_CS("left")))
-    	    {
-    	        rule->addProperty(CssTags::FLOAT, Style::FLOAT_LEFT);
-    	    }
-    	    else if (value.CompareNoCase(_CS("left")))
-    	    {
-    	        rule->addProperty(CssTags::FLOAT, Style::FLOAT_RIGHT);
-    	    }
-    	    else if (value.CompareNoCase(_CS("none")))
-    	    {
-    	        rule->addProperty(CssTags::FLOAT, Style::FLOAT_NONE);
-    	    }
-    	    else if (value.CompareNoCase(_CS("inherit")))
-    	    {
-    	        rule->addProperty(CssTags::FLOAT, Style::FLOAT_INHERIT);
-    	    }
     	}
     	break;
     case CssTags::DISPLAY:
@@ -646,7 +606,17 @@ void CssParser::addProperty(CssRule* rule, LUint property, PropertyValue& value)
     	        rule->addProperty(CssTags::DISPLAY, Style::DISPLAY_INLINE);
     	    }
     	}
-    	break;	
+    	break;
+    case CssTags::SCALE:
+        {
+        	rule->addProperty(CssTags::SCALE, StringUtils::stringToInt(value));
+        }
+        break;
+    case CssTags::Z_INDEX:
+        {
+        	rule->addProperty(CssTags::Z_INDEX, StringUtils::stringToInt(value));
+        }
+        break;
     default:
     	{        	
     	}
