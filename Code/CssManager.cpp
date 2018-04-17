@@ -55,9 +55,7 @@ CssRule* CssManager::getCssRule()
 	KLOG("CssManager::getCssRule1");
 	for (; iter != endIter; ++iter)
 	{
-	    CssRule* rule = *iter;
-
-	    CssRule* newRule = matchRule(rule);
+	    CssRule* newRule = matchRule(*iter);
 	    if (newRule != NULL)
 	    {
 	        isNull = LFalse;
@@ -243,7 +241,6 @@ CssRule* CssManager::createNewCssRule(const CssRule* parentRule, CssRule* childR
 		}
 
 		delete childRule;
-		childRule = NULL;
     }
 
 	return newCssRule;
