@@ -95,35 +95,11 @@ Style::Style(LFont::FontStyle style)
 	border.init();
 }
 
-Style::Style(LUint foregroundColor, LUint backgroundColor, LFont font)
-{
-	color              = foregroundColor;
-	bgColor            = backgroundColor;
-	font               = font;
-    positionType       = STATICPOSITION ;
-    left               = 0;
-    top                = 0;
-    width              = 0;
-    height             = 0;
-    leftMargin         = 0;
-    rightMargin        = 0;
-    topMargin          = 0;
-    bottomMargin       = 0;
-    transparent        = LTrue;
-    textAlignement     = LGraphicsContext::TextLeft;
-    topPadding         = 0;
-    bottomPadding      = 0;
-    leftPadding        = 0;
-    rightPadding       = 0;
-    displayType        = DIPLAY_ANY;
-    scale                = 1;
-    border.init();
-}
-
 Style::Style(const Style& style)
 {
-    color                = style.color;
-    bgColor              = style.bgColor;
+    color              = style.color;
+    bgColor            = style.bgColor;
+    opacity            = style.opacity;
     font               = style.font;
     positionType       = style.positionType ;
     left               = style.left;
@@ -159,6 +135,7 @@ const Style& Style::operator=(const Style& style)
 {
     color              = style.color;
     bgColor            = style.bgColor;
+    opacity            = 255;
     font               = style.font;
     positionType       = style.positionType ;
     left               = style.left;
@@ -176,16 +153,15 @@ const Style& Style::operator=(const Style& style)
     leftPadding        = style.leftPadding;
     rightPadding       = style.rightPadding;
     displayType        = style.displayType;
-    //mBgImg              = style.getBgImage();
-    //copy border
     border             = style.getBorder();
     return *this;
 }
 
 void Style::init()
 {
-    color                = COLOR_BLACK;
-    bgColor            = 0;
+    color              = util::LRgb(0x0, 0x0, 0x0, 0xFF);
+    bgColor            = util::LRgb(0xFF, 0xFF, 0xFF, 0xFF);
+    opacity            = 255;
     positionType       = STATICPOSITION;
     displayType        = DIPLAY_ANY;
     left               = 0;

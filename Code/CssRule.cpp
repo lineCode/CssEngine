@@ -8,6 +8,7 @@
 #include "CssRule.h"
 #include "CssTags.h"
 #include "LGdi.h"
+#include "LColor.h"
 #include "SalLog.h"
 
 namespace util
@@ -349,7 +350,7 @@ void CssRule::copyPropertiesFrom(const CssRule* rule)
 }
 
 // last style will be send to htmlitem object
-void CssRule::createStyle(Style& style, LFont::FontStyle currentFont)
+void CssRule::createStyle(Style& style)
 {
 	style.transparent = LTrue;
 	
@@ -378,8 +379,8 @@ void CssRule::setStyleProperties(Style& style, LInt property,
 	{
 	case CssTags::BACKGROUND_COLOR:
 		{
-		    style.bgColor = value.intVal;
-		    style.transparent = LFalse;
+		    style.bgColor = util::LColor::parseArgbInt(value.intVal);
+			style.transparent = LFalse;
 		    KFORMATLOG("style.m_bgColor=%x", value.intVal);
 		}
 		break;
@@ -392,7 +393,7 @@ void CssRule::setStyleProperties(Style& style, LInt property,
 	case CssTags::COLOR:
 		{
 			KFORMATLOG("style Color=%x", value.intVal);
-		    style.color = value.intVal;
+		    style.color = util::LColor::parseArgbInt(value.intVal);
 		}
 		break;
 	case CssTags::FONT_STYLE:

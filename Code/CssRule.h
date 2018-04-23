@@ -138,7 +138,7 @@ public:
 	CssPropertyValue& getPropertyValue(LInt property);
 	
 	void copyPropertiesFrom(const CssRule* rule);
-	void createStyle(Style& style, LFont::FontStyle currentFont);
+	void createStyle(Style& style);
 	
 	const AttributeMap& getProperties() const;
 	const AttributeMap* getPropertiesPtr() const;

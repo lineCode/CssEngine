@@ -206,7 +206,7 @@ CssRule* CssManager::createNewCssRule(const CssRule* parentRule, CssRule* childR
 		{
 			if ((*iter)->getKey() > CssTags::STYLE_NULL) //  iter.getKey() > 0 can be inherited
 			{
-				LInt key = (LInt)(*iter)->getKey();
+				LInt key = (*iter)->getKey();
 				LInt styleNull = CssTags::STYLE_NULL;
 				KFORMATLOG("CssManager::createNewCssRule inherited key=%d styleNull=%d", key, styleNull);
 
@@ -229,7 +229,7 @@ CssRule* CssManager::createNewCssRule(const CssRule* parentRule, CssRule* childR
 		AttributeMap::Iterator iterEnd = properties->end();
 		for (; iter != iterEnd; ++iter)
 		{
-			KDESLOG((LInt)(*iter)->getKey());
+			KDESLOG((*iter)->getKey());
 		    if ((*iter)->getValue().strVal.GetLength() > 0)
 			{
 				newCssRule->addProperty((*iter)->getKey(), (*iter)->getValue().strVal);

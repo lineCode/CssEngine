@@ -60,7 +60,6 @@ public:
 public:
 	Style();
 	Style(LFont::FontStyle font);
-	Style(LUint foregroundColor, LUint backgroundColor, LFont font);
 	Style(const Style& style);
 	const Style& operator = (const Style& style);
 	void init();
@@ -71,8 +70,8 @@ public:
 	const Border& getBorder() const;
 
 public:
-	LUint                         color; // foreground color
-	LUint                         bgColor; // background color
+	util::LRgb                    color; // foreground color
+	util::LRgb                    bgColor; // background color
 	StringA                       bgImageUrl;
 	LFont                         font;
 	LBool                         transparent; // if transparent
@@ -93,6 +92,7 @@ public:
 	LInt                          rightPadding;
 	LReal                         scale;
 	LInt                          zindex;
+	LUint8                        opacity;
 	Border                        border;
 };
 }
