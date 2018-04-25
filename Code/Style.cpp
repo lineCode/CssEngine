@@ -100,6 +100,7 @@ Style::Style(const Style& style)
     color              = style.color;
     bgColor            = style.bgColor;
     opacity            = style.opacity;
+    drawOpacity        = style.drawOpacity;
     font               = style.font;
     positionType       = style.positionType ;
     left               = style.left;
@@ -136,6 +137,7 @@ const Style& Style::operator=(const Style& style)
     color              = style.color;
     bgColor            = style.bgColor;
     opacity            = 255;
+    drawOpacity        = 255;
     font               = style.font;
     positionType       = style.positionType ;
     left               = style.left;
@@ -162,6 +164,7 @@ void Style::init()
     color              = util::LRgb(0x0, 0x0, 0x0, 0xFF);
     bgColor            = util::LRgb(0xFF, 0xFF, 0xFF, 0xFF);
     opacity            = 255;
+    drawOpacity        = 255;
     positionType       = STATICPOSITION;
     displayType        = DIPLAY_ANY;
     left               = 0;

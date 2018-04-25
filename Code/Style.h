@@ -93,6 +93,7 @@ public:
 	LReal                         scale;
 	LInt                          zindex;
 	LUint8                        opacity;
+	LUint8                        drawOpacity;
 	Border                        border;
 };
 }
